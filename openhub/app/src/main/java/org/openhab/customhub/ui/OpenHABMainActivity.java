@@ -314,7 +314,9 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
         if (stateFragment == null || stateFragment.getFragmentList().size() == 0) {
             stateFragment = null;
             stateFragment = new StateRetainFragment();
-            fm.beginTransaction().add(stateFragment, "stateFragment").commit();
+            try {
+                fm.beginTransaction().add(stateFragment, "stateFragment").commit();
+            }catch (Exception e){}
             mOpenHABTracker = new OpenHABTracker(this, openHABServiceType, mServiceDiscoveryEnabled);
             mStartedWithNetworkConnectivityInfo = NetworkConnectivityInfo.currentNetworkConnectivityInfo(this);
             mOpenHABTracker.start();

@@ -7,6 +7,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * Created by belovictor on 21/10/14.
@@ -39,7 +40,8 @@ public class NetworkConnectivityInfo implements Parcelable {
                 Context.CONNECTIVITY_SERVICE);
         NetworkConnectivityInfo connectivityInfo = new NetworkConnectivityInfo();
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        if (activeNetworkInfo.isConnected()) {
+        Log.v("step","zero");
+        if (activeNetworkInfo != null && activeNetworkInfo.isConnected()) {
             connectivityInfo.setNetworkType(activeNetworkInfo.getType());
             if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                 // get ssid here
