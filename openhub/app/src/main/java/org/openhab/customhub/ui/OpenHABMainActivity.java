@@ -99,7 +99,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
     public static final String GCM_SENDER_ID = "737820980945";
     // Base URL of current openHAB connection
     private String openHABBaseUrl = "https://demo.openhab.org:8443/";
-// Bse AI URL
+    // Bse AI URL
     private String AIBaseUrl = "";
     // openHAB username
     private String openHABUsername = "";
@@ -228,7 +228,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         if (savedInstanceState != null) {
             openHABBaseUrl = savedInstanceState.getString("openHABBaseUrl");
-          //  AIBaseUrl = savedInstanceState.getString("AIBaseUrl");
+            //  AIBaseUrl = savedInstanceState.getString("AIBaseUrl");
             sitemapRootUrl = savedInstanceState.getString("sitemapRootUrl");
             mStartedWithNetworkConnectivityInfo = savedInstanceState.getParcelable("startedWithNetworkConnectivityInfo");
         }
@@ -320,7 +320,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
             mOpenHABTracker = new OpenHABTracker(this, openHABServiceType, mServiceDiscoveryEnabled);
             mStartedWithNetworkConnectivityInfo = NetworkConnectivityInfo.currentNetworkConnectivityInfo(this);
             mOpenHABTracker.start();
-        // If state fragment exists and contains something then just restore the fragments
+            // If state fragment exists and contains something then just restore the fragments
         } else {
             Log.d(TAG, "State fragment found");
             // If connectivity type changed while we were in background
@@ -366,8 +366,8 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
 
     public void onOpenHABTracked(String baseUrl, String message) {
         if (message != null)
-        Toast.makeText(getApplicationContext(), message,
-                Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), message,
+                    Toast.LENGTH_LONG).show();
         openHABBaseUrl = baseUrl;
         mDrawerAdapter.setOpenHABBaseUrl(openHABBaseUrl);
         pagerAdapter.setOpenHABBaseUrl(openHABBaseUrl);
@@ -789,7 +789,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                 @Override
                 public void onSuccess(String response) {
                     Log.d("voiceres", "Command was sent successfully");
-                       Log.d("voicerespond", response);
+                    Log.d("voicerespond", response);
                 }
 
                 @Override
@@ -824,43 +824,44 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                 isireqfirst = false;
             }
 
+            if(irequest.get(2).length() < 1 && irequest.get(1).length() > 0){irequest.add(2,phrase.trim()); }
+            if(irequest.get(1).length() < 1 && !isireqfirst){irequest.add(1,phrase.trim());}
 
-            String request = AIBaseUrl + "/talk?sentence=" + irequest.get(0) + "&s2=" + irequest.get(1) + "&s3=" + irequest.get(2);
-            Log.v("aibase",AIBaseUrl);
+            String request = AIBaseUrl + "/talk?sentence=" + URLEncoder.encode(irequest.get(0), "UTF-8") + "&s2=" + URLEncoder.encode(irequest.get(1), "UTF-8") + "&s3=" + URLEncoder.encode(irequest.get(2), "UTF-8");
+            Log.v("aibase",request);
             if(ireqtimer != null) {ireqtimer.cancel();ireqtimer = null;ireqtimer = new Timer();}
             mAsyncHttpClient.get(request, new JsonHttpResponseHandler() {
 
-                            @Override
-                            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                                try {
-                                    Log.v("voicetocom", String.valueOf(response.getString("response")));
-                                    if(response.getInt("exit") == 1 && response.getString("response").toString().trim().length() > 0){
-                                        sendItemCommand("VoiceCommand", response.getString("response").toString().trim());
-                                        irequest = new ArrayList<String>();
-                                    }
-                                    if(response.getInt("exit") == 0 && response.getString("response").toString().trim().length() > 0 && !isireqfirst){
-                                     if(irequest.get(2).length() < 1 && irequest.get(1).length() > 0){irequest.add(2,phrase.trim()); }
-                                        if(irequest.get(1).length() < 1){irequest.add(1,phrase.trim());}
-                                       Log.v("voicetofullanswer: ", "sentence=" + irequest.get(0) + "&s2=" + irequest.get(1) + "&s3=" + irequest.get(2));
-                                       //ireqtimer = new Timer();
-                                        ireqtimer.schedule(new TimerTask() {
-                                            @Override
-                                            public void run() {
-                                                irequest = new ArrayList<String>();
-                                                Log.v("voicetodestroy","complete");
-                                                this.cancel();
-                                            }
-                                        }, 60L * 1000, 60L * 1000);
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    try {
+                        //Log.v("voicetocom", String.valueOf(response.getString("response")));
+                        if(response.getInt("exit") == 1 && response.getString("response").toString().trim().length() > 0){
+                          Log.v("aibase","sent: " + response.getString("response").toString().trim());
+                            sendItemCommand("VoiceCommand", response.getString("response").toString().trim());
+                            irequest = new ArrayList<String>();
+                        }
 
+                        if(response.getInt("exit") == 0 && response.getString("response").toString().trim().length() > 0){
 
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                            ireqtimer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    irequest = new ArrayList<String>();
+                                    Log.v("voicetodestroy","complete");
+                                    this.cancel();
                                 }
-                            }
+                            }, 60L * 1000, 60L * 1000);
 
-                        });
+launchVoiceRecognition();
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            });
         } catch (UnsupportedEncodingException e) {
             if (e.getMessage() != null)
                 Log.e(TAG, e.getMessage());

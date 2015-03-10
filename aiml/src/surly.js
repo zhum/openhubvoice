@@ -452,7 +452,7 @@ for (var i = 0; i < categories.length; i++) {
 
 if (categories[i].find("subcategory")[1] && this.comparePattern(s3.toString().trim(), categories[i].find("subcategory")[1].find("pattern")[0].text())) {
 				if (this.checkThat(categories[i].find("subcategory")[1])) {
-			return [categories[i].find("subcategory")[1].find('template'), 0];
+			return [categories[i].find("subcategory")[1].find('template'), 1];
 				}
 }
 

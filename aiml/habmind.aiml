@@ -1,51 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <aiml>
 
-<category>
-<pattern>ПРИВЕТ</pattern>
-<template>VHVGHVGJ</template>
 
-<subcategory>
-<pattern>DЫVS</pattern>
-<template>BHJ</template>
-</subcategory>
-
-<subcategory>
-<pattern>Т</pattern>
-<template></template>
-</subcategory>
-</category>
 
 
 
 <category>
-<pattern>MNT</pattern>
-<template>HI </template>
+<pattern>TURN</pattern>
+<template>1</template>
 
 <subcategory>
-<pattern>C</pattern>
-<template>VU</template>
+<pattern>ME</pattern>
+<template>1</template>
 </subcategory>
 
 <subcategory>
-<pattern/>
-<template/>
-</subcategory>
-</category>
-
-
-<category>
-<pattern/>
-<template/>
-
-<subcategory>
-<pattern/>
-<template/>
-</subcategory>
-
-<subcategory>
-<pattern/>
-<template/>
+<pattern>LIGHT</pattern>
+<template>LIGHT</template>
 </subcategory>
 </category>
 </aiml>
