@@ -857,8 +857,12 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                           Log.v("aibase","sent: " + response.getString("response").toString().trim());
                             sendItemCommand("VoiceCommand", response.getString("response").toString().trim());
                             irequest = new ArrayList<String>();
-                            appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
-                            startlistening();
+
+                            if(mSettings.getBoolean(Constants.PREFERENCE_VBACK, false)) {
+                                startlistening();
+                            }else{
+                                appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
+                            }
                         }
 
                         if(response.getInt("exit") == 0 && response.getString("response").toString().trim().length() > 0){
