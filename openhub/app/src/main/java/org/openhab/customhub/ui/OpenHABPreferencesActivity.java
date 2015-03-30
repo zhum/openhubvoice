@@ -58,6 +58,7 @@ public class OpenHABPreferencesActivity extends PreferenceActivity {
 	    Preference urlPreference = getPreferenceScreen().findPreference(Constants.PREFERENCE_URL);
 	    Preference altUrlPreference = getPreferenceScreen().findPreference(Constants.PREFERENCE_ALTURL);
         Preference aiUrlPreference = getPreferenceScreen().findPreference(Constants.PREFERENCE_AIURL);
+        Preference voicebackgroundactivator = getPreferenceScreen().findPreference(Constants.PREFERENCE_VBACKPHRASE);
 	    Preference usernamePreference = getPreferenceScreen().findPreference(Constants.PREFERENCE_USERNAME);
 	    Preference passwordPreference = getPreferenceScreen().findPreference(Constants.PREFERENCE_PASSWORD);
 	    ListPreference themePreference = (ListPreference)getPreferenceScreen().findPreference(Constants.PREFERENCE_THEME);
@@ -91,6 +92,27 @@ public class OpenHABPreferencesActivity extends PreferenceActivity {
 	    });
 	    updateTextPreferenceSummary(altUrlPreference, null);
 
+
+
+
+        voicebackgroundactivator.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                if (newValue.toString().length() >= 4) {
+                    updateTextPreferenceSummary(preference, (String)newValue);
+                    return true;
+                }
+                showAlertDialog(getString(R.string.erorr_invalid_backgroundvoicephrase));
+                return false;
+            }
+        });
+
+        updateTextPreferenceSummary(voicebackgroundactivator, null);
+
+
+
+
+
         aiUrlPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -104,13 +126,19 @@ public class OpenHABPreferencesActivity extends PreferenceActivity {
             }
         });
         updateTextPreferenceSummary(aiUrlPreference, null);
+
+
+
 	    usernamePreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 			@Override
 			public boolean onPreferenceChange(Preference preference, Object newValue) {
 				updateTextPreferenceSummary(preference, (String)newValue);
 				return true;
 			}
-	    });
+        	    });
+
+
+
 	    updateTextPreferenceSummary(usernamePreference, null);
 	    passwordPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 			@Override
@@ -119,6 +147,9 @@ public class OpenHABPreferencesActivity extends PreferenceActivity {
 				return true;
 			}
 	    });
+
+
+
 	    updatePasswordPreferenceSummary(passwordPreference, null);
 	    themePreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 			@Override
@@ -128,6 +159,8 @@ public class OpenHABPreferencesActivity extends PreferenceActivity {
 				return true;
 			}
 	    });
+
+
 	    themePreference.setSummary(themePreference.getEntry());
 	    animationPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 			@Override
@@ -169,7 +202,8 @@ public class OpenHABPreferencesActivity extends PreferenceActivity {
 				passwordPreference.setSummary(this.getResources().getString(R.string.info_not_set));
 		}
 	}
-	
+
+
 	private boolean urlIsValid(String url) {
 		// As we accept an empty URL, which means it is not configured, length==0 is ok
 		if (url.length() == 0)

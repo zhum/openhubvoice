@@ -6,7 +6,7 @@
 
 
 <category>
-<pattern>TURN</pattern>
+<pattern>OPEN</pattern>
 <template>1</template>
 
 <subcategory>

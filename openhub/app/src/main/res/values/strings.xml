@@ -22,6 +22,10 @@
     <string name="settings_openhab_alturl_summary">Remote openHAB URL (used when local openHAB is unavailable)</string>
     <string name="settings_openhab_aiurl">AI Remote URL</string>
     <string name="settings_openhab_aiurl_summary">Remote AI URL (used to detect voice commands)</string>
+    <string name="settings_openhab_voicebackground">Background recognition</string>
+    <string name="settings_openhab_voicebackground_summary">Background recognition (instead of active)</string>
+    <string name="settings_openhab_voicebackgroundphrase">Background recognition phrase activator</string>
+    <string name="settings_openhab_voicebackgroundphrase_summary">Type phrase, which will be used as activator</string>
     <string name="settings_openhab_username">Username</string>
     <string name="settings_openhab_username_summary">openHAB username</string>
     <string name="settings_openhab_password">Password</string>
@@ -50,6 +54,7 @@
     <string name="error_network_not_available">Network is not available</string>
     <string name="error_no_uuid">Unable to get openHAB UUID, connection failed</string>
     <string name="erorr_invalid_url">Please enter a valid URL in a \'protocol://host:port/\' form</string>
+    <string name="erorr_invalid_backgroundvoicephrase">Phrase must contain at least 4 characters</string>
     <string name="erorr_no_wifi_mcast_permission">CHANGE_WIFI_MULTICAST_STATE permission is not granted, openHAB discovery will be disabled!</string>
     <string name="erorr_no_wifi_state_permission">ACCESS_WIFI_STATE permission is not granted, openHAB discovery will be disabled!</string>
     <string name="error_connection_failed">Connection to host failed</string>

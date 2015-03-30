@@ -17,6 +17,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -73,8 +74,9 @@ import org.openhab.customhub.ui.drawer.OpenHABDrawerAdapter;
 import org.openhab.customhub.util.Constants;
 import org.openhab.customhub.util.MyAsyncHttpClient;
 import org.openhab.customhub.util.Util;
+import org.openhab.customhub.util.asyncvoicesphinx;
 import org.w3c.dom.Document;
-
+import org.openhab.customhub.util.asyncvoice;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -151,6 +153,9 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
     private ArrayList<String> irequest;
     private Timer ireqtimer;
     private boolean isireqfirst;
+    private Context appcon;
+    private asyncvoicesphinx myvoiceback;
+    private Menu appmenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,6 +165,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
         irequest = new ArrayList<String>();
         ireqtimer = new Timer();
         isireqfirst = true;
+        appcon = this;
         // Set default values, false means do it one time during the very first launch
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         // Set non-persistent HABDroid version preference to current version from application package
@@ -544,6 +550,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        appmenu = menu;
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         return true;
@@ -552,6 +559,7 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.mainmenu_voice_recognition).setVisible(mVoiceRecognitionEnabled);
+        //todo
         return true;
     }
 
@@ -616,7 +624,15 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                 Util.overridePendingTransition(this, false);
                 return true;
             case R.id.mainmenu_voice_recognition:
-                launchVoiceRecognition();
+                if(myvoiceback == null) {
+                    appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_light);
+                    startlistening();
+                }else{
+                    appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
+                    myvoiceback.recognizer.cancel();
+                    myvoiceback = null;
+                }
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -654,16 +670,17 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                         Toast.makeText(this, "I recognized: " + textMatchList.get(0),
                                 Toast.LENGTH_LONG).show();
                         sendtoaiml(textMatchList.get(0));
-                        //sendItemCommand("VoiceCommand", textMatchList.get(0));
                     } else {
                         Log.d("voicesetempty: ", "Voice recognition returned empty set");
                         Toast.makeText(this, "I can't read you!",
                                 Toast.LENGTH_LONG).show();
+                        appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
                     }
                 } else {
                     Log.d(TAG, "A voice recognition error occured");
                     Toast.makeText(this, "A voice recognition error occured",
                             Toast.LENGTH_LONG).show();
+                    appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
                 }
                 break;
             default:
@@ -840,6 +857,8 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                           Log.v("aibase","sent: " + response.getString("response").toString().trim());
                             sendItemCommand("VoiceCommand", response.getString("response").toString().trim());
                             irequest = new ArrayList<String>();
+                            appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
+                            startlistening();
                         }
 
                         if(response.getInt("exit") == 0 && response.getString("response").toString().trim().length() > 0){
@@ -850,10 +869,23 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                                     irequest = new ArrayList<String>();
                                     Log.v("voicetodestroy","complete");
                                     this.cancel();
+                                    startlistening();
                                 }
                             }, 60L * 1000, 60L * 1000);
 
-launchVoiceRecognition();
+                            if(mSettings.getBoolean(Constants.PREFERENCE_VBACK, false)) {
+                                //asyncvoicesphinx myvoiceback = new asyncvoicesphinx(this);
+                                asyncvoice myvoicebackorig = new asyncvoice(appcon,new voicebackground(){
+                                    @Override
+                                    public void voicebackground(String result) {
+                                        sendtoaiml(result);
+                                    }
+                                }, appmenu);
+                            }else{
+                                launchVoiceRecognition();
+                            }
+
+
                         }
 
                     } catch (JSONException e) {
@@ -1024,6 +1056,35 @@ launchVoiceRecognition();
     public static MyAsyncHttpClient getAsyncHttpClient() {
         return mAsyncHttpClient;
     }
+
+
+    public interface voicebackground{
+
+        void voicebackground(String param);
+    }
+
+
+    public void startlistening(){
+
+        if(mSettings.getBoolean(Constants.PREFERENCE_VBACK, false)) {
+            myvoiceback = new asyncvoicesphinx(this,new voicebackground(){
+                @Override
+                public void voicebackground(String result) {
+                    Log.v("hyber","income");
+                    asyncvoice myvoicebackorig = new asyncvoice(appcon,new voicebackground(){
+                        @Override
+                        public void voicebackground(String result) {
+                            sendtoaiml(result);
+                        }
+                    },appmenu);
+                }
+            });
+        }else{
+            launchVoiceRecognition();
+        }
+
+    }
+
 
     private void gcmRegisterBackground() {
         // We need settings
