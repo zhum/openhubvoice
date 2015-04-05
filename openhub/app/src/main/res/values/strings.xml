@@ -81,4 +81,5 @@
     <string name="hello_world">hello</string>
     <string name="mainmenu_openhab_ai">AI panel</string>
     <string name="app_aipanel_name">AI Panel</string>
+    <string name="bad_command">Unsuitable voice activator command!</string>
 </resources>

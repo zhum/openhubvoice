@@ -1,11 +1,16 @@
 package org.openhab.customhub.util;
 
 import android.content.Context;
+import android.graphics.Path;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
+import org.openhab.customhub.R;
 import org.openhab.customhub.ui.OpenHABMainActivity;
 
 import edu.cmu.pocketsphinx.Assets;
@@ -13,8 +18,16 @@ import edu.cmu.pocketsphinx.Hypothesis;
 import edu.cmu.pocketsphinx.RecognitionListener;
 import edu.cmu.pocketsphinx.SpeechRecognizer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import static edu.cmu.pocketsphinx.SpeechRecognizerSetup.defaultSetup;
 
@@ -24,14 +37,18 @@ import static edu.cmu.pocketsphinx.SpeechRecognizerSetup.defaultSetup;
 public class asyncvoicesphinx implements edu.cmu.pocketsphinx.RecognitionListener {
 
     public SpeechRecognizer recognizer;
+    public AsyncTask foldertask;
     private String passphrase;
     private OpenHABMainActivity.voicebackground backvoice;
+    private  Context appcon;
+    public boolean beforeremove = false;
 
     public  asyncvoicesphinx(final Context con, OpenHABMainActivity.voicebackground voicebackground){
 
+       appcon = con;
        backvoice = voicebackground;
             passphrase = PreferenceManager.getDefaultSharedPreferences(con).getString(Constants.PREFERENCE_VBACKPHRASE, "");
-        new AsyncTask<Void, Void, Exception>() {
+     foldertask =  new AsyncTask<Void, Void, Exception>() {
             @Override
             protected Exception doInBackground(Void... params) {
                 try {
@@ -60,25 +77,82 @@ public class asyncvoicesphinx implements edu.cmu.pocketsphinx.RecognitionListene
         // The recognizer can be configured to perform multiple searches
         // of different kind and switch between them
 
-        recognizer = defaultSetup()
-                .setAcousticModel(new File(assetsDir, "en-us-ptm"))
-                .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
+        boolean isrussian = false;
+        for(int i = 0;i < passphrase.length();i++){
+            if((int) passphrase.charAt(i) >= 128){
+                isrussian = true;
+            }
+        }
 
-                        // To disable logging of raw audio comment out this call (takes a lot of space on the device)
-                .setRawLogDir(assetsDir)
+        File tempfile;
+        if(isrussian){
 
-                        // Threshold to tune for keyphrase to balance between false alarms and misses
-                .setKeywordThreshold(1e-45f)
+tempfile = new File(assetsDir, "msu_ru_full.dic");
+            recognizer = defaultSetup()
+                    .setAcousticModel(new File(assetsDir, "ru-ru-ptm"))
+                    .setDictionary(new File(assetsDir, "msu_ru_full.dic"))
+                    .setKeywordThreshold(1e-45f)
+                    .setBoolean("-allphone_ci", true)
+                    .getRecognizer();
 
-                        // Use context-independent phonetic search, context-dependent is too slow for mobile
-                .setBoolean("-allphone_ci", true)
 
-                .getRecognizer();
+
+        }else {
+            tempfile = new File(assetsDir, "cmudict-en-us.dict");
+            recognizer = defaultSetup()
+                    .setAcousticModel(new File(assetsDir, "en-us-ptm"))
+                    .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
+                    .setKeywordThreshold(1e-45f)
+                    .setBoolean("-allphone_ci", true)
+                    .getRecognizer();
+
+        }
+
         recognizer.addListener(this);
 
-        // Create keyword-activation search.
-        recognizer.addKeyphraseSearch("mainstack", passphrase);
-        recognizer.startListening("mainstack");
+        StringBuilder text = new StringBuilder();
+        BufferedReader br = new BufferedReader(new FileReader(tempfile));
+        String line;
+
+        while ((line = br.readLine()) != null) {
+            text.append(line);
+            text.append('\n');
+        }
+
+        boolean ispass = true;
+
+        String[] phrases = passphrase.trim().split(" ");
+
+       for(int s = 0;s < phrases.length;s++){
+           if(!text.toString().contains(phrases[s])){
+               ispass = false;
+           }
+       }
+
+
+       if(ispass && !beforeremove){
+           recognizer.addKeyphraseSearch("mainstack", passphrase);
+           recognizer.startListening("mainstack");
+
+       }
+
+
+        if(!ispass) {
+            try {
+                new Thread() {
+                    @Override
+                    public void run() {
+                        Looper.prepare();
+                        Toast.makeText(appcon, R.string.bad_command, Toast.LENGTH_SHORT).show();
+                        Looper.loop();
+                    }
+                }.start();
+            } catch (Exception i) {
+            }
+
+
+        }
+
     }
 
 
@@ -98,8 +172,7 @@ public class asyncvoicesphinx implements edu.cmu.pocketsphinx.RecognitionListene
             return;
 
 
-        Log.v("hyber","u: " + hypothesis.getHypstr().toString());
-        if(hypothesis.getHypstr().toString().matches(passphrase)) {
+        if(hypothesis.getHypstr().toString().trim().equals(passphrase)) {
             Log.v("hyber","particial: " + hypothesis.getHypstr().toString());
             recognizer.stop();
             recognizer.cancel();
@@ -116,7 +189,7 @@ public class asyncvoicesphinx implements edu.cmu.pocketsphinx.RecognitionListene
 
     @Override
     public void onError(Exception e) {
-
+    Log.v("sphinxerror", e.toString());
     }
 
     @Override

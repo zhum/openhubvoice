@@ -29,6 +29,7 @@ import android.nfc.NfcAdapter;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
@@ -629,7 +630,12 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                     startlistening();
                 }else{
                     appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
-                    myvoiceback.recognizer.cancel();
+                    if(myvoiceback.recognizer != null) {
+                        Log.v("recogh: ","dest");
+                        myvoiceback.recognizer.cancel();
+                    }
+                    myvoiceback.beforeremove = true;
+                    myvoiceback.foldertask.cancel(true);
                     myvoiceback = null;
                 }
 
@@ -849,6 +855,26 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
             if(ireqtimer != null) {ireqtimer.cancel();ireqtimer = null;ireqtimer = new Timer();}
             mAsyncHttpClient.get(request, new JsonHttpResponseHandler() {
 
+
+
+                @Override
+                protected void handleMessage(Message msg) {
+                    switch(msg.what){
+                        case FAILURE_MESSAGE:
+                            irequest = new ArrayList<String>();
+
+                            if(mSettings.getBoolean(Constants.PREFERENCE_VBACK, false)) {
+                                startlistening();
+                            }else{
+                                appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
+                            }
+                            break;
+                        default:
+                            super.handleMessage(msg);
+                    }
+                }
+
+
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                     try {
@@ -897,6 +923,10 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                     }
                 }
 
+                @Override
+                public void onFailure ( Throwable e, JSONObject errorResponse ) {
+                    Log.v("jsone","!!!");
+                }
             });
         } catch (UnsupportedEncodingException e) {
             if (e.getMessage() != null)
