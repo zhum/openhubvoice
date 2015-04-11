@@ -25,7 +25,6 @@ public class asyncvoice implements
 
     public SpeechRecognizer speech = null;
     public Intent recognizerIntent;
-    private String LOG_TAG = "VoiceRecognitionActivity";
     public String rtext = "";
     private Context appcon;
     private AudioManager mAudioManager;
@@ -48,46 +47,31 @@ public class asyncvoice implements
     }
 
     @Override
-    public void onBeginningOfSpeech() {
-        Log.i(LOG_TAG, "onBeginningOfSpeech");
-
-    }
+    public void onBeginningOfSpeech() { }
 
     @Override
-    public void onBufferReceived(byte[] buffer) {
-        Log.i(LOG_TAG, "onBufferReceived: " + buffer);
-    }
+    public void onBufferReceived(byte[] buffer) { }
 
     @Override
-    public void onEndOfSpeech() {
-        Log.i(LOG_TAG, "onEndOfSpeech");
-    }
+    public void onEndOfSpeech() { }
 
     @Override
     public void onError(int errorCode) {
-        Log.d(LOG_TAG, "FAILED");
         appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
         speech.cancel();
     }
 
     @Override
-    public void onEvent(int arg0, Bundle arg1) {
-        Log.i(LOG_TAG, "onEvent");
-    }
+    public void onEvent(int arg0, Bundle arg1) { }
 
     @Override
-    public void onPartialResults(Bundle arg0) {
-        Log.i(LOG_TAG, "onPartialResults");
-    }
+    public void onPartialResults(Bundle arg0) { }
 
     @Override
-    public void onReadyForSpeech(Bundle arg0) {
-        Log.i(LOG_TAG, "onReadyForSpeech");
-    }
+    public void onReadyForSpeech(Bundle arg0) { }
 
     @Override
     public void onResults(Bundle results) {
-        Log.i(LOG_TAG, "onResults");
         ArrayList<String> matches = results
                 .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         String text = "";
@@ -95,13 +79,10 @@ public class asyncvoice implements
             text += result + "\n";
 
         rtext = text;
-        Log.i(LOG_TAG, "onResults text: " + rtext);
         vback.voicebackground(matches.get(0));
     }
 
     @Override
-    public void onRmsChanged(float rmsdB) {
-    //    Log.i(LOG_TAG, "onRmsChanged: " + rmsdB);
-    }
+    public void onRmsChanged(float rmsdB) { }
 
 }

@@ -587,7 +587,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                 }
                 return true;
             case R.id.mainmenu_openhab_ai:
-                Log.v("ai","panel");
                 Intent aiIntent = new Intent(this.getApplicationContext(), aipanelsettings.class);
                 startActivityForResult(aiIntent, 876);
 
@@ -631,7 +630,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                 }else{
                     appmenu.findItem(R.id.mainmenu_voice_recognition).setIcon(R.drawable.menu_mic_dark);
                     if(myvoiceback.recognizer != null) {
-                        Log.v("recogh: ","dest");
                         myvoiceback.recognizer.cancel();
                     }
                     myvoiceback.beforeremove = true;
@@ -851,7 +849,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
             if(irequest.get(1).length() < 1 && !isireqfirst){irequest.add(1,phrase.trim());}
 
             String request = AIBaseUrl + "/talk?sentence=" + URLEncoder.encode(irequest.get(0), "UTF-8") + "&s2=" + URLEncoder.encode(irequest.get(1), "UTF-8") + "&s3=" + URLEncoder.encode(irequest.get(2), "UTF-8");
-            Log.v("aibase",request);
             if(ireqtimer != null) {ireqtimer.cancel();ireqtimer = null;ireqtimer = new Timer();}
             mAsyncHttpClient.get(request, new JsonHttpResponseHandler() {
 
@@ -862,7 +859,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                     switch(msg.what){
                         case FAILURE_MESSAGE:
                             irequest = new ArrayList<String>();
-
                             if(mSettings.getBoolean(Constants.PREFERENCE_VBACK, false)) {
                                 startlistening();
                             }else{
@@ -878,10 +874,12 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                     try {
-                        //Log.v("voicetocom", String.valueOf(response.getString("response")));
                         if(response.getInt("exit") == 1 && response.getString("response").toString().trim().length() > 0){
-                          Log.v("aibase","sent: " + response.getString("response").toString().trim());
-                            sendItemCommand("VoiceCommand", response.getString("response").toString().trim());
+                            if( response.getString("response").toString().trim().matches("null")){
+                                sendItemCommand("VoiceCommand", irequest.get(0).trim());
+                            }else {
+                                sendItemCommand("VoiceCommand", response.getString("response").toString().trim());
+                            }
                             irequest = new ArrayList<String>();
 
                             if(mSettings.getBoolean(Constants.PREFERENCE_VBACK, false)) {
@@ -897,7 +895,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
                                 @Override
                                 public void run() {
                                     irequest = new ArrayList<String>();
-                                    Log.v("voicetodestroy","complete");
                                     this.cancel();
                                     startlistening();
                                 }
@@ -925,7 +922,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
 
                 @Override
                 public void onFailure ( Throwable e, JSONObject errorResponse ) {
-                    Log.v("jsone","!!!");
                 }
             });
         } catch (UnsupportedEncodingException e) {
@@ -1104,7 +1100,6 @@ public class OpenHABMainActivity extends FragmentActivity implements OnWidgetSel
             myvoiceback = new asyncvoicesphinx(this,new voicebackground(){
                 @Override
                 public void voicebackground(String result) {
-                    Log.v("hyber","income");
                     asyncvoice myvoicebackorig = new asyncvoice(appcon,new voicebackground(){
                         @Override
                         public void voicebackground(String result) {

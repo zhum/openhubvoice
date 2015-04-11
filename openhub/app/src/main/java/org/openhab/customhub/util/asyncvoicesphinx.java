@@ -47,7 +47,7 @@ public class asyncvoicesphinx implements edu.cmu.pocketsphinx.RecognitionListene
 
        appcon = con;
        backvoice = voicebackground;
-            passphrase = PreferenceManager.getDefaultSharedPreferences(con).getString(Constants.PREFERENCE_VBACKPHRASE, "");
+            passphrase = PreferenceManager.getDefaultSharedPreferences(con).getString(Constants.PREFERENCE_VBACKPHRASE, "").toLowerCase();
      foldertask =  new AsyncTask<Void, Void, Exception>() {
             @Override
             protected Exception doInBackground(Void... params) {
@@ -173,7 +173,6 @@ tempfile = new File(assetsDir, "msu_ru_full.dic");
 
 
         if(hypothesis.getHypstr().toString().trim().equals(passphrase)) {
-            Log.v("hyber","particial: " + hypothesis.getHypstr().toString());
             recognizer.stop();
             recognizer.cancel();
             recognizer.shutdown();
@@ -182,7 +181,6 @@ tempfile = new File(assetsDir, "msu_ru_full.dic");
 
     @Override
     public void onResult(Hypothesis hypothesis) {
-        Log.v("hyber: ", hypothesis.getHypstr());
         backvoice.voicebackground(hypothesis.getHypstr());
 
     }
@@ -193,7 +191,5 @@ tempfile = new File(assetsDir, "msu_ru_full.dic");
     }
 
     @Override
-    public void onTimeout() {
-Log.v("hyber","timeout");
-    }
+    public void onTimeout() { }
 }
